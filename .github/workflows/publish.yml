@@ -6,23 +6,29 @@ jobs:
     version:
       runs-on: ubuntu-latest
       steps:
+        - name: node
+          uses: actions/setup-node@v2
+          with:
+              node-version: 12
+              registry-url: https://registry.npmjs.org
+                  
         - run: npm version patch
           working-directory: Packages/dev.markasaad.volt.utils
   
     publish:
-        runs-on: ubuntu-latest
-        steps:
-            - name: checkout
-              uses: actions/checkout@v2
+      runs-on: ubuntu-latest
+      steps:
+        - name: checkout
+          uses: actions/checkout@v2
+          
+        - name: node
+          uses: actions/setup-node@v2
+          with:
+              node-version: 12
+              registry-url: https://registry.npmjs.org
               
-            - name: node
-              uses: actions/setup-node@v2
-              with:
-                  node-version: 12
-                  registry-url: https://registry.npmjs.org
-                  
-            - name: publish
-              run: npm publish --access public
-              working-directory: Packages/dev.markasaad.volt.utils
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+        - name: publish
+          run: npm publish --access public
+          working-directory: Packages/dev.markasaad.volt.utils
+          env:
+              NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
