@@ -42,11 +42,13 @@ public class ConfigVar {
 
     public static void ResetAllToDefault() {
         foreach (var v in ConfigVars) {
-            v.Value.ResetToDefault();
+            v.Value.LoadValueOrDefault();
         }
     }
 
     public static void SaveChangedVars() {
+        Debug.Log(DirtyFlags);
+
         if ((DirtyFlags & Flags.Save) == Flags.None)
             return;
 
@@ -58,12 +60,13 @@ public class ConfigVar {
 
         using (var st = System.IO.File.CreateText(path)) {
             foreach (var cvar in ConfigVars.Values) {
-                if ((cvar.flags & Flags.Save) == Flags.Save)
+                if ((cvar.flags & Flags.Save) == Flags.Save) {
                     st.WriteLine("{0} \"{1}\"", cvar.name, cvar.Value);
+                    VDebug.Log("Config", $"saved: {cvar.name}: {cvar.Value}", Color.yellow);
+                }
             }
             DirtyFlags &= ~Flags.Save;
         }
-        VDebug.Log("Config", "saved: " + path, Color.yellow);
     }
 
     private static Regex validateNameRe = new Regex(@"^[a-z_+-][a-z0-9_+.-]*$");
@@ -76,22 +79,6 @@ public class ConfigVar {
             VDebug.LogError("Config", $"Trying to register cvar with invalid name: \"{cvar.name}\""
             + "\nthe name must be in lowercase, begin with a letter or (_ + -), and end with a letter or a number or (_ + . -)", Color.yellow);
             return;
-        }
-
-        string path = System.IO.Path.Join(Application.persistentDataPath, CONFIG_FILE_NAME);
-
-        if (System.IO.File.Exists(path)) {
-            using (var st = System.IO.File.OpenText(path)) {
-                string line;
-                while ((line = st.ReadLine()) != null) {
-                    string[] tokens = line.Split(" ");
-
-                    if (tokens[0] == cvar.name) {
-                        cvar.Value = tokens[1];
-                        VDebug.Log("Config", $"Loaded {cvar.name}: {cvar.Value}", Color.yellow);
-                    }
-                }
-            }
         }
 
         ConfigVars.Add(cvar.name, cvar);
@@ -161,7 +148,7 @@ public class ConfigVar {
                         continue;
                     }
                     cvar = new ConfigVar(name, attr.Description, attr.DefaultValue, attr.Flags);
-                    cvar.ResetToDefault();
+                    cvar.LoadValueOrDefault();
                     RegisterConfigVar(cvar);
                     field.SetValue(null, cvar);
                 }
@@ -172,8 +159,24 @@ public class ConfigVar {
         DirtyFlags = Flags.None;
     }
 
-    void ResetToDefault() {
-        this.Value = defaultValue;
+    void LoadValueOrDefault() {
+        Value = defaultValue;
+
+        string path = System.IO.Path.Join(Application.persistentDataPath, CONFIG_FILE_NAME);
+
+        if (System.IO.File.Exists(path)) {
+            using (var st = System.IO.File.OpenText(path)) {
+                string line;
+                while ((line = st.ReadLine()) != null) {
+                    string[] tokens = line.Split(" ");
+
+                    if (tokens[0] == name) {
+                        Value = tokens[1].Trim('"');
+                        VDebug.Log("Config", $"Loaded {name}: {Value}", Color.yellow);
+                    }
+                }
+            }
+        }
     }
 
     public bool ChangeCheck() {
