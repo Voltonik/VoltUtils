@@ -1,0 +1,15 @@
+{
+  "name": "dev.markasaad.volt.utils",
+  "version": "0.0.1",
+  "displayName": "VoltUtils",
+  "description": "Useful utilities I use for developing games.",
+  "keywords": [
+    "unity",
+    "utilities"
+  ],
+  "author": {
+    "name": "Mark Asaad",
+    "email": "markasaadramzy@gmail.com",
+    "url": "https://www.markasaad.dev"
+  }
+}
