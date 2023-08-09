@@ -19,12 +19,14 @@ jobs:
               run: npm version patch
               working-directory: Packages/dev.markasaad.volt.utils
                   
+            - run: git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+            - run: git config user.name "$GITHUB_ACTOR"
+            - run: git commit -m "[skip actions]"
+            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --follow-tags
+            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --tags
+            
             - name: publish
               run: npm publish --access public
               working-directory: Packages/dev.markasaad.volt.utils
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
-                  
-            - run: git commit -m "[skip actions]"
-            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --follow-tags
-            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --tags
