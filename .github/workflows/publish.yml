@@ -3,6 +3,12 @@ name: "publish npm"
 on: push
 
 jobs:
+    version:
+      runs-on: ubuntu-latest
+      steps:
+        - run: npm version patch
+          working-directory: Packages/dev.markasaad.volt.utils
+  
     publish:
         runs-on: ubuntu-latest
         steps:
@@ -14,10 +20,6 @@ jobs:
               with:
                   node-version: 12
                   registry-url: https://registry.npmjs.org
-                  
-            - name: version patch 
-              run: npm version patch
-              working-directory: Packages/dev.markasaad.volt.utils
                   
             - name: publish
               run: npm publish --access public
