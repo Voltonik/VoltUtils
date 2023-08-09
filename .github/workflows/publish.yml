@@ -3,32 +3,28 @@ name: "publish npm"
 on: push
 
 jobs:
-    version:
-      runs-on: ubuntu-latest
-      steps:
-        - name: node
-          uses: actions/setup-node@v2
-          with:
-              node-version: 12
-              registry-url: https://registry.npmjs.org
-                  
-        - run: npm version patch
-          working-directory: Packages/dev.markasaad.volt.utils
-  
     publish:
-      runs-on: ubuntu-latest
-      steps:
-        - name: checkout
-          uses: actions/checkout@v2
-          
-        - name: node
-          uses: actions/setup-node@v2
-          with:
-              node-version: 12
-              registry-url: https://registry.npmjs.org
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout
+              uses: actions/checkout@v2
               
-        - name: publish
-          run: npm publish --access public
-          working-directory: Packages/dev.markasaad.volt.utils
-          env:
-              NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+            - name: node
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 12
+                  registry-url: https://registry.npmjs.org
+                  
+            - name: version patch 
+              run: npm version patch
+              working-directory: Packages/dev.markasaad.volt.utils
+                  
+            - name: publish
+              run: npm publish --access public
+              working-directory: Packages/dev.markasaad.volt.utils
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
+                  
+            - run: git commit -m "[skip actions]"
+            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --follow-tags
+            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --tags
