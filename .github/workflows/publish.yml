@@ -23,8 +23,7 @@ jobs:
             - run: git config user.name "$GITHUB_ACTOR"
             - run: git add Packages/dev.markasaad.volt.utils/package.json
             - run: git commit -m "[skip actions]"
-            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --follow-tags
-            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" --tags
+            - run: git push "https://$GITHUB_ACTOR:${{ secrets.ACCESS_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
             
             - name: publish
               run: npm publish --access public
