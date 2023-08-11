@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System;
 
 namespace Volt.Utils.Debug {
+    using Debug = VDebug;
+
     public interface IConsoleUI {
         void Init();
         void Shutdown();
@@ -42,44 +44,47 @@ namespace Volt.Utils.Debug {
     }
 
     public class Console {
-        class ConsoleCommand {
-            public string name;
-            public MethodDelegate method;
-            public string description;
-            public int tag;
+        private class ConsoleCommand {
+            public string Name;
+            public MethodDelegate Method;
+            public string Description;
+            public int Tag;
 
             public ConsoleCommand(string name, MethodDelegate method, string description, int tag) {
-                this.name = name;
-                this.method = method;
-                this.description = description;
-                this.tag = tag;
+                Name = name;
+                Method = method;
+                Description = description;
+                Tag = tag;
             }
         }
 
         [ConfigVar(Name = "config.showlastline", DefaultValue = "0", Description = "Show last logged line briefly at top of screen")]
-        static ConfigVar consoleShowLastLine;
+        private static readonly ConfigVar ConsoleShowLastLine;
 
         [ConfigVar(Name = "config.autosave", DefaultValue = "0", Description = "Auto save variables on change (ConfigVar Flag include be ConfigVar.Flags.Save)")]
-        static ConfigVar consoleAutoSave;
+        private static readonly ConfigVar ConsoleAutoSave;
 
-        static List<string> s_PendingCommands = new List<string>();
-        public static int s_PendingCommandsWaitForFrames = 0;
-        public static bool s_PendingCommandsWaitForLoad = false;
-        static Dictionary<string, ConsoleCommand> s_Commands = new Dictionary<string, ConsoleCommand>();
-        const int k_HistoryCount = 50;
-        static string[] s_History = new string[k_HistoryCount];
-        static int s_HistoryNextIndex = 0;
-        static int s_HistoryIndex = 0;
+        public static int PendingCommandsWaitForFrames = 0;
+        public static bool PendingCommandsWaitForLoad = false;
 
-        private static LogSeverity m_LogLevel = LogSeverity.Information;
+        private static List<string> s_pendingCommands = new List<string>();
+        private static Dictionary<string, ConsoleCommand> s_commands = new Dictionary<string, ConsoleCommand>();
+        private const int K_HistoryCount = 50;
+        private static string[] s_history = new string[K_HistoryCount];
+        private static int s_historyNextIndex = 0;
+        private static int s_historyIndex = 0;
+
+        private static LogSeverity s_logLevel = LogSeverity.Information;
 
         public delegate void MethodDelegate(string[] args);
 
-        static IConsoleUI s_ConsoleUI;
+        private static IConsoleUI s_consoleUI;
+        private static string s_lastMsg = "";
+        private static double s_timeLastMsg;
 
         public static void Init(IConsoleUI consoleUI) {
-            s_ConsoleUI = consoleUI;
-            s_ConsoleUI.Init();
+            s_consoleUI = consoleUI;
+            s_consoleUI.Init();
 
             AddCommand("help", CmdHelp, "Show available commands.");
             AddCommand("vars", CmdVars, "Show available variables.");
@@ -89,55 +94,51 @@ namespace Volt.Utils.Debug {
         }
 
         public static void Shutdown() {
-            s_PendingCommands = new List<string>();
-            s_PendingCommandsWaitForFrames = 0;
-            s_PendingCommandsWaitForLoad = false;
-            s_Commands = new Dictionary<string, ConsoleCommand>();
-            s_History = new string[k_HistoryCount];
-            s_HistoryNextIndex = 0;
-            s_HistoryIndex = 0;
+            s_pendingCommands = new List<string>();
+            PendingCommandsWaitForFrames = 0;
+            PendingCommandsWaitForLoad = false;
+            s_commands = new Dictionary<string, ConsoleCommand>();
+            s_history = new string[K_HistoryCount];
+            s_historyNextIndex = 0;
+            s_historyIndex = 0;
 
-            s_ConsoleUI.Shutdown();
+            s_consoleUI.Shutdown();
         }
 
         public static void SetLogLevel(LogSeverity logLevel) {
-            m_LogLevel = logLevel;
+            s_logLevel = logLevel;
         }
 
         static void OutputString(string message) {
-            if (s_ConsoleUI != null)
-                s_ConsoleUI.OutputString(message);
+            s_consoleUI?.OutputString(message);
         }
-
-        static string lastMsg = "";
-        static double timeLastMsg;
 
         public static void Write(string msg) {
             // Have to condition on cvar being null as this may run before cvar system is initialized
-            if (consoleShowLastLine != null && consoleShowLastLine.IntValue > 0) {
-                lastMsg = msg;
-                timeLastMsg = Time.time;
+            if (ConsoleShowLastLine != null && ConsoleShowLastLine.IntValue > 0) {
+                s_lastMsg = msg;
+                s_timeLastMsg = Time.time;
             }
             OutputString(msg);
         }
 
         public static void AddCommand(string name, MethodDelegate method, string description, int tag = 0) {
             name = name.ToLower();
-            if (s_Commands.ContainsKey(name)) {
+            if (s_commands.ContainsKey(name)) {
                 OutputString("Cannot add command " + name + " twice");
                 return;
             }
-            s_Commands.Add(name, new ConsoleCommand(name, method, description, tag));
+            s_commands.Add(name, new ConsoleCommand(name, method, description, tag));
         }
 
         public static bool RemoveCommand(string name) {
-            return s_Commands.Remove(name.ToLower());
+            return s_commands.Remove(name.ToLower());
         }
 
         public static void RemoveCommandsWithTag(int tag) {
             var removals = new List<string>();
-            foreach (var c in s_Commands) {
-                if (c.Value.tag == tag)
+            foreach (var c in s_commands) {
+                if (c.Value.Tag == tag)
                     removals.Add(c.Key);
             }
             foreach (var c in removals)
@@ -161,96 +162,49 @@ namespace Volt.Utils.Debug {
                 if (newCommandStarting)
                     commands.Add(argument);
                 else
-                    commands[commands.Count - 1] += " " + argument;
+                    commands[^1] += " " + argument;
             }
 
             foreach (var command in commands) {
                 if (command.StartsWith("+"))
-                    EnqueueCommandNoHistory(command.Substring(1));
+                    EnqueueCommandNoHistory(command[1..]);
             }
         }
 
         public static bool IsOpen() {
-            return s_ConsoleUI.IsOpen();
+            return s_consoleUI.IsOpen();
         }
 
         public static void SetOpen(bool open) {
-            s_ConsoleUI.SetOpen(open);
+            s_consoleUI.SetOpen(open);
         }
 
         public static void SetPrompt(string prompt) {
-            s_ConsoleUI.SetPrompt(prompt);
+            s_consoleUI.SetPrompt(prompt);
         }
 
         public static void ConsoleUpdate() {
-            s_ConsoleUI.ConsoleUpdate();
+            s_consoleUI.ConsoleUpdate();
 
-            while (s_PendingCommands.Count > 0) {
-                if (s_PendingCommandsWaitForFrames > 0) {
-                    s_PendingCommandsWaitForFrames--;
+            while (s_pendingCommands.Count > 0) {
+                if (PendingCommandsWaitForFrames > 0) {
+                    PendingCommandsWaitForFrames--;
                     break;
                 }
-                if (s_PendingCommandsWaitForLoad) {
+                if (PendingCommandsWaitForLoad) {
                     //if (!Game.game.levelManager.IsCurrentLevelLoaded())
                     //    break;
-                    s_PendingCommandsWaitForLoad = false;
+                    PendingCommandsWaitForLoad = false;
                 }
                 // Remove before executing as we may hit an 'exec' command that wants to insert commands
-                var cmd = s_PendingCommands[0];
-                s_PendingCommands.RemoveAt(0);
+                var cmd = s_pendingCommands[0];
+                s_pendingCommands.RemoveAt(0);
                 ExecuteCommand(cmd);
             }
         }
 
         public static void ConsoleLateUpdate() {
-            s_ConsoleUI.ConsoleLateUpdate();
-        }
-
-        static void SkipWhite(string input, ref int pos) {
-            while (pos < input.Length && " \t".IndexOf(input[pos]) > -1) {
-                pos++;
-            }
-        }
-
-        static string ParseQuoted(string input, ref int pos) {
-            pos++;
-            int startPos = pos;
-            while (pos < input.Length) {
-                if (input[pos] == '"' && input[pos - 1] != '\\') {
-                    pos++;
-                    return input.Substring(startPos, pos - startPos - 1);
-                }
-                pos++;
-            }
-            return input.Substring(startPos);
-        }
-
-        static string Parse(string input, ref int pos) {
-            int startPos = pos;
-            while (pos < input.Length) {
-                if (" \t".IndexOf(input[pos]) > -1) {
-                    return input.Substring(startPos, pos - startPos);
-                }
-                pos++;
-            }
-            return input.Substring(startPos);
-        }
-
-        static List<string> Tokenize(string input) {
-            var pos = 0;
-            var res = new List<string>();
-            var c = 0;
-            while (pos < input.Length && c++ < 10000) {
-                SkipWhite(input, ref pos);
-                if (pos == input.Length)
-                    break;
-
-                if (input[pos] == '"' && (pos == 0 || input[pos - 1] != '\\')) {
-                    res.Add(ParseQuoted(input, ref pos));
-                } else
-                    res.Add(Parse(input, ref pos));
-            }
-            return res;
+            s_consoleUI.ConsoleLateUpdate();
         }
 
         public static void ExecuteCommand(string command) {
@@ -261,20 +215,18 @@ namespace Volt.Utils.Debug {
             OutputString('>' + command.AddColor(Color.yellow));
             var commandName = tokens[0].ToLower();
 
-            ConsoleCommand consoleCommand;
-            ConfigVar configVar;
 
-            if (s_Commands.TryGetValue(commandName, out consoleCommand)) {
+            if (s_commands.TryGetValue(commandName, out ConsoleCommand consoleCommand)) {
                 var arguments = tokens.GetRange(1, tokens.Count - 1).ToArray();
-                consoleCommand.method(arguments);
-            } else if (ConfigVar.ConfigVars.TryGetValue(commandName, out configVar)) {
+                consoleCommand.Method(arguments);
+            } else if (ConfigVar.ConfigVars.TryGetValue(commandName, out ConfigVar configVar)) {
                 if (tokens.Count == 2) {
                     configVar.Value = tokens[1];
-                    if (consoleAutoSave != null && consoleAutoSave.IntValue > 0)
+                    if (ConsoleAutoSave != null && ConsoleAutoSave.IntValue > 0)
                         ConfigVar.SaveChangedVars();
                 } else if (tokens.Count == 1) {
                     // Print value
-                    OutputString(string.Format("{0} = {1}", configVar.name, configVar.Value));
+                    OutputString(string.Format("{0} = {1}", configVar.Name, configVar.Value));
                 } else {
                     OutputString("Too many arguments");
                 }
@@ -283,62 +235,15 @@ namespace Volt.Utils.Debug {
             }
         }
 
-        static void CmdHelp(string[] arguments) {
-            OutputString("Available commands:");
-
-            var lines = new List<string[]>();
-
-            foreach (var c in s_Commands)
-                lines.Add(new[] { c.Value.name, c.Value.description });
-
-            OutputString(ConsoleUtility.PadElementsInLines(lines, 3));
-        }
-
-        static void CmdVars(string[] arguments) {
-            var varNames = new List<string>(ConfigVar.ConfigVars.Keys);
-            varNames.Sort();
-
-            foreach (var v in varNames) {
-                var cv = ConfigVar.ConfigVars[v];
-                OutputString(string.Format("{0} = {1}", cv.name, cv.Value));
-            }
-        }
-
-        static void CmdExec(string[] arguments) {
-            bool silent = false;
-            string filename = "";
-            if (arguments.Length == 1) {
-                filename = arguments[0];
-            } else if (arguments.Length == 2 && arguments[0] == "-s") {
-                silent = true;
-                filename = arguments[1];
-            } else {
-                OutputString("Usage: exec [-s] <filename>");
-                return;
-            }
-
-            try {
-                var lines = System.IO.File.ReadAllLines(filename);
-                s_PendingCommands.InsertRange(0, lines);
-                if (s_PendingCommands.Count > 128) {
-                    s_PendingCommands.Clear();
-                    OutputString("Command overflow. Flushing pending commands!!!");
-                }
-            } catch (Exception e) {
-                if (!silent)
-                    OutputString("Exec failed: " + e.Message);
-            }
-        }
-
         public static void EnqueueCommandNoHistory(string command) {
-            VDebug.Log("CMD", command, Color.yellow, m_LogLevel);
-            s_PendingCommands.Add(command);
+            Debug.Log("CMD", command, s_logLevel);
+            s_pendingCommands.Add(command);
         }
 
         public static void EnqueueCommand(string command) {
-            s_History[s_HistoryNextIndex % k_HistoryCount] = command;
-            s_HistoryNextIndex++;
-            s_HistoryIndex = s_HistoryNextIndex;
+            s_history[s_historyNextIndex % K_HistoryCount] = command;
+            s_historyNextIndex++;
+            s_historyIndex = s_historyNextIndex;
 
             EnqueueCommandNoHistory(command);
         }
@@ -348,7 +253,7 @@ namespace Volt.Utils.Debug {
             // Look for possible tab completions
             List<string> matches = new List<string>();
 
-            foreach (var c in s_Commands) {
+            foreach (var c in s_commands) {
                 var name = c.Key;
                 if (!name.StartsWith(prefix, true, null))
                     continue;
@@ -370,7 +275,7 @@ namespace Volt.Utils.Debug {
             for (var i = 0; i < matches.Count - 1; i++) {
                 lcp = Mathf.Min(lcp, CommonPrefix(matches[i], matches[i + 1]));
             }
-            prefix += matches[0].Substring(prefix.Length, lcp - prefix.Length);
+            prefix += matches[0][prefix.Length..lcp];
             if (matches.Count > 1) {
                 // write list of possible completions
                 for (var i = 0; i < matches.Count; i++)
@@ -382,35 +287,129 @@ namespace Volt.Utils.Debug {
         }
 
         public static string HistoryUp(string current) {
-            if (s_HistoryIndex == 0 || s_HistoryNextIndex - s_HistoryIndex >= k_HistoryCount - 1)
+            if (s_historyIndex == 0 || s_historyNextIndex - s_historyIndex >= K_HistoryCount - 1)
                 return "";
 
-            if (s_HistoryIndex == s_HistoryNextIndex) {
-                s_History[s_HistoryIndex % k_HistoryCount] = current;
+            if (s_historyIndex == s_historyNextIndex) {
+                s_history[s_historyIndex % K_HistoryCount] = current;
             }
 
-            s_HistoryIndex--;
+            s_historyIndex--;
 
-            return s_History[s_HistoryIndex % k_HistoryCount];
+            return s_history[s_historyIndex % K_HistoryCount];
         }
 
         public static string HistoryDown() {
-            if (s_HistoryIndex == s_HistoryNextIndex)
+            if (s_historyIndex == s_historyNextIndex)
                 return "";
 
-            s_HistoryIndex++;
+            s_historyIndex++;
 
-            return s_History[s_HistoryIndex % k_HistoryCount];
+            return s_history[s_historyIndex % K_HistoryCount];
+        }
+
+        private static void CmdHelp(string[] arguments) {
+            OutputString("Available commands:");
+
+            var lines = new List<string[]>();
+
+            foreach (var c in s_commands)
+                lines.Add(new[] { c.Value.Name, c.Value.Description });
+
+            OutputString(ConsoleUtility.PadElementsInLines(lines, 3));
+        }
+
+        private static void CmdVars(string[] arguments) {
+            var varNames = new List<string>(ConfigVar.ConfigVars.Keys);
+            varNames.Sort();
+
+            foreach (var v in varNames) {
+                var cv = ConfigVar.ConfigVars[v];
+                OutputString(string.Format("{0} = {1}", cv.Name, cv.Value));
+            }
+        }
+
+        private static void CmdExec(string[] arguments) {
+            bool silent = false;
+            string filename;
+            if (arguments.Length == 1) {
+                filename = arguments[0];
+            } else if (arguments.Length == 2 && arguments[0] == "-s") {
+                silent = true;
+                filename = arguments[1];
+            } else {
+                OutputString("Usage: exec [-s] <filename>");
+                return;
+            }
+
+            try {
+                var lines = System.IO.File.ReadAllLines(filename);
+                s_pendingCommands.InsertRange(0, lines);
+                if (s_pendingCommands.Count > 128) {
+                    s_pendingCommands.Clear();
+                    OutputString("Command overflow. Flushing pending commands!!!");
+                }
+            } catch (Exception e) {
+                if (!silent)
+                    OutputString("Exec failed: " + e.Message);
+            }
         }
 
         // Returns length of largest common prefix of two strings
-        static int CommonPrefix(string a, string b) {
+        private static int CommonPrefix(string a, string b) {
             int minl = Mathf.Min(a.Length, b.Length);
             for (int i = 1; i <= minl; i++) {
-                if (!a.StartsWith(b.Substring(0, i), true, null))
+                if (!a.StartsWith(b[..i], true, null))
                     return i - 1;
             }
             return minl;
+        }
+
+        private static void SkipWhite(string input, ref int pos) {
+            while (pos < input.Length && " \t".IndexOf(input[pos]) > -1) {
+                pos++;
+            }
+        }
+
+        private static string ParseQuoted(string input, ref int pos) {
+            pos++;
+            int startPos = pos;
+            while (pos < input.Length) {
+                if (input[pos] == '"' && input[pos - 1] != '\\') {
+                    pos++;
+                    return input.Substring(startPos, pos - startPos - 1);
+                }
+                pos++;
+            }
+            return input[startPos..];
+        }
+
+        private static string Parse(string input, ref int pos) {
+            int startPos = pos;
+            while (pos < input.Length) {
+                if (" \t".IndexOf(input[pos]) > -1) {
+                    return input[startPos..pos];
+                }
+                pos++;
+            }
+            return input[startPos..];
+        }
+
+        private static List<string> Tokenize(string input) {
+            var pos = 0;
+            var res = new List<string>();
+            var c = 0;
+            while (pos < input.Length && c++ < 10000) {
+                SkipWhite(input, ref pos);
+                if (pos == input.Length)
+                    break;
+
+                if (input[pos] == '"' && (pos == 0 || input[pos - 1] != '\\')) {
+                    res.Add(ParseQuoted(input, ref pos));
+                } else
+                    res.Add(Parse(input, ref pos));
+            }
+            return res;
         }
     }
 }

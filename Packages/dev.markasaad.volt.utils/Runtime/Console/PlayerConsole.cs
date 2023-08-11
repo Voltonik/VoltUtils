@@ -2,21 +2,21 @@ using UnityEngine;
 
 namespace Volt.Utils.Debug {
     public class PlayerConsole : MonoBehaviour {
-        #region Public Fields
         public LogSeverity LogLevel;
-        #endregion
 
-        #region Private Fields
-        private LogSeverity m_PreviousLogLevel;
-        #endregion
+        private LogSeverity m_previousLogLevel;
 
-        #region Initialization
         private void Start() {
             var consoleUI = Instantiate(Resources.Load<ConsoleGUI>("Prefabs/ConsoleGUI"));
             DontDestroyOnLoad(consoleUI);
 
             Console.SetLogLevel(LogLevel);
             Console.Init(consoleUI);
+
+            Console.AddCommand("runserver", RunServer, "Starts a server instance.");
+            Console.AddCommand("runhost", RunHost, "Starts a host instance.");
+            Console.AddCommand("runclient", RunClient, "Starts a client instance.");
+
             Console.SetOpen(false);
 
             ConfigVar.Init();
@@ -25,23 +25,33 @@ namespace Volt.Utils.Debug {
         private void OnDestroy() {
             Console.Shutdown();
         }
-        #endregion
 
-        #region Player Loop
         private void Update() {
-            if (m_PreviousLogLevel != LogLevel) {
+            if (m_previousLogLevel != LogLevel) {
                 Console.SetLogLevel(LogLevel);
-                m_PreviousLogLevel = LogLevel;
-                VDebug.Log("set log level of console");
+                m_previousLogLevel = LogLevel;
             }
 
             Console.ConsoleUpdate();
 
-            m_PreviousLogLevel = LogLevel;
+            m_previousLogLevel = LogLevel;
         }
 
         private void LateUpdate() {
             Console.ConsoleLateUpdate();
+        }
+
+        #region Commands
+        private static void RunServer(string[] args) {
+
+        }
+
+        private static void RunHost(string[] args) {
+
+        }
+
+        private static void RunClient(string[] args) {
+
         }
         #endregion
     }

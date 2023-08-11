@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace Volt.Utils.Debug {
@@ -11,33 +13,35 @@ namespace Volt.Utils.Debug {
         Information = 4
     }
 
-
     public static class VDebug {
         public const LogSeverity LogEverything = LogSeverity.Information | LogSeverity.Warning | LogSeverity.Error;
 
-        public static void Log(string system, object message, Color distinctColor = default, LogSeverity allowedSeverity = LogEverything, LogSeverity logSeverity = LogSeverity.Information) {
+        public static Dictionary<string, Color> LogColors = new Dictionary<string, Color>();
+
+        public static void Log(string system, object message, LogSeverity allowedSeverity = LogEverything, LogSeverity logSeverity = LogSeverity.Information) {
             if (!allowedSeverity.HasFlag(logSeverity))
                 return;
 
-            Color logColor = Color.white;
+            if (!LogColors.TryGetValue(system, out Color distinctColor)) {
+                distinctColor = ColorExtensions.RandomColor(system);
+                LogColors.Add(system, distinctColor);
+            }
 
             switch (logSeverity) {
                 case LogSeverity.Warning:
-                    logColor = Color.yellow;
-                    Debug.LogWarning($"[{system}]".AddColor(distinctColor == default ? Color.white : distinctColor) + ":" + $" {message}".AddColor(logColor));
+                    Debug.LogWarning($"[{system}]".AddColor(distinctColor) + ":" + $" {message}".AddColor(Color.yellow));
                     break;
                 case LogSeverity.Error:
-                    logColor = Color.red;
-                    Debug.LogError($"[{system}]".AddColor(distinctColor == default ? Color.white : distinctColor) + ":" + $" {message}".AddColor(logColor));
+                    Debug.LogError($"[{system}]".AddColor(distinctColor) + ":" + $" {message}".AddColor(Color.red));
                     break;
                 default:
-                    Debug.Log($"[{system}]".AddColor(distinctColor == default ? Color.white : distinctColor) + ":" + $" {message}".AddColor(logColor));
+                    Debug.Log($"[{system}]".AddColor(distinctColor) + ":" + $" {message}".AddColor(Color.white));
                     break;
             }
         }
 
-        public static void LogError(string system, object message, Color distinctColor = default, LogSeverity allowedSeverity = LogEverything) {
-            Log(system, message, distinctColor, allowedSeverity, LogSeverity.Error);
+        public static void LogError(string system, object message, LogSeverity allowedSeverity = LogEverything) {
+            Log(system, message, allowedSeverity, LogSeverity.Error);
         }
 
         public static void Log(object message) {
