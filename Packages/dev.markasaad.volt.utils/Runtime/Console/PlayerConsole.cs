@@ -13,10 +13,6 @@ namespace Volt.Utils.Debug {
             Console.SetLogLevel(LogLevel);
             Console.Init(consoleUI);
 
-            Console.AddCommand("runserver", RunServer, "Starts a server instance.");
-            Console.AddCommand("runhost", RunHost, "Starts a host instance.");
-            Console.AddCommand("runclient", RunClient, "Starts a client instance.");
-
             Console.SetOpen(false);
 
             ConfigVar.Init();
@@ -40,19 +36,5 @@ namespace Volt.Utils.Debug {
         private void LateUpdate() {
             Console.ConsoleLateUpdate();
         }
-
-        #region Commands
-        private static void RunServer(string[] args) {
-
-        }
-
-        private static void RunHost(string[] args) {
-
-        }
-
-        private static void RunClient(string[] args) {
-
-        }
-        #endregion
     }
 }
