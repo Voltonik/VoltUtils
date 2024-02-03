@@ -1,10 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 namespace Volt.Utils.Debug {
+#if ENABLE_INPUT_SYSTEM
+    public class ConsoleGUI : MonoBehaviour, IConsoleUI, ConsoleActionMap.IConsoleActions {
+#else
     public class ConsoleGUI : MonoBehaviour, IConsoleUI {
-        [ConfigVar(Name = "console.alpha", DefaultValue = "0.9", Description = "Alpha of console")]
+#endif
+        [ConfigVar(Name = "console.alpha", DefaultValue = "0.9", Description = "Console transparency.")]
         static ConfigVar consoleAlpha;
 
         private List<string> m_Lines = new List<string>();
@@ -23,11 +28,15 @@ namespace Volt.Utils.Debug {
 
         public void Init() {
             buildIdText.text = Application.version + " (" + Application.unityVersion + ")";
+
+#if ENABLE_INPUT_SYSTEM
+            var consoleActionMap = new ConsoleActionMap();
+            consoleActionMap.Console.AddCallbacks(this);
+            consoleActionMap.Enable();
+#endif
         }
 
-        public void Shutdown() {
-
-        }
+        public void Shutdown() { }
 
         public void OutputString(string s) {
             m_Lines.Add(s);
@@ -48,8 +57,10 @@ namespace Volt.Utils.Debug {
         }
 
         public void ConsoleUpdate() {
+#if !ENABLE_INPUT_SYSTEM
             if (Input.GetKeyDown(toggle_console_key) || Input.GetKeyDown(KeyCode.Backslash))
                 SetOpen(!IsOpen());
+#endif
 
             if (!IsOpen())
                 return;
@@ -61,6 +72,7 @@ namespace Volt.Utils.Debug {
             // This is to prevent clicks outside input field from removing focus
             input_field.ActivateInputField();
 
+#if !ENABLE_INPUT_SYSTEM
             if (Input.GetKeyDown(KeyCode.Tab)) {
                 if (input_field.caretPosition == input_field.text.Length && input_field.text.Length > 0) {
                     var res = Console.TabComplete(input_field.text);
@@ -74,6 +86,7 @@ namespace Volt.Utils.Debug {
                 input_field.text = Console.HistoryDown();
                 input_field.caretPosition = input_field.text.Length;
             }
+#endif
         }
 
         public void ConsoleLateUpdate() {
@@ -97,7 +110,28 @@ namespace Volt.Utils.Debug {
             Console.EnqueueCommand(value);
         }
 
-        public void SetPrompt(string prompt) {
+        public void SetPrompt(string prompt) { }
+
+        public void OnToggle(InputAction.CallbackContext context) {
+            SetOpen(!IsOpen());
+        }
+
+        public void OnAutoComplete(InputAction.CallbackContext context) {
+            if (input_field.caretPosition == input_field.text.Length && input_field.text.Length > 0) {
+                var res = Console.TabComplete(input_field.text);
+                input_field.text = res;
+                input_field.caretPosition = res.Length;
+            }
+        }
+
+        public void OnHistoryUp(InputAction.CallbackContext context) {
+            input_field.text = Console.HistoryUp(input_field.text);
+            m_WantedCaretPosition = input_field.text.Length;
+        }
+
+        public void OnHistoryDown(InputAction.CallbackContext context) {
+            input_field.text = Console.HistoryDown();
+            input_field.caretPosition = input_field.text.Length;
         }
     }
 }
