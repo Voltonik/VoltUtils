@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
-namespace Volt.Utils.Debug {
+namespace Volt.Utils.Dev {
 #if ENABLE_INPUT_SYSTEM
     public class ConsoleGUI : MonoBehaviour, IConsoleUI, ConsoleActionMap.IConsoleActions {
 #else

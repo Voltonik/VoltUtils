@@ -4,8 +4,6 @@ using System.Text.RegularExpressions;
 
 using UnityEngine;
 
-using Debug = Volt.Utils.Debug.VDebug;
-
 [Flags]
 public enum ConfigVarFlags {
     None = 0x0,       // None
@@ -106,16 +104,16 @@ public class ConfigVar {
             DirtyFlags &= ~ConfigVarFlags.Save;
         }
 
-        Debug.Log("ConfigVars", $"Config saved");
+        Debug.Log("Config saved");
     }
 
     public static void RegisterConfigVar(ConfigVar cvar) {
         if (ConfigVars.ContainsKey(cvar.Name)) {
-            Debug.LogError("ConfigVars", $"Trying to register cvar \"{cvar.Name}\" twice");
+            Debug.LogError($"Trying to register cvar \"{cvar.Name}\" twice");
             return;
         }
         if (!ValidateNameRe.IsMatch(cvar.Name)) {
-            Debug.LogError("ConfigVars", $"Trying to register cvar with invalid name: \"{cvar.Name}\""
+            Debug.LogError($"Trying to register cvar with invalid name: \"{cvar.Name}\""
             + "\nthe name must be in lowercase, begin with a letter or (_ + -), and end with a letter or a number or (_ + . -)");
             return;
         }
@@ -132,17 +130,17 @@ public class ConfigVar {
                     if (!field.IsDefined(typeof(ConfigVarAttribute), false))
                         continue;
                     if (!field.IsStatic) {
-                        Debug.LogError("ConfigVars", "Cannot use ConfigVar attribute on non-static fields");
+                        Debug.LogError("Cannot use ConfigVar attribute on non-static fields");
                         continue;
                     }
                     if (field.FieldType != typeof(ConfigVar)) {
-                        Debug.LogError("ConfigVars", "Cannot use ConfigVar attribute on fields not of type ConfigVar");
+                        Debug.LogError("Cannot use ConfigVar attribute on fields not of type ConfigVar");
                         continue;
                     }
                     var attr = field.GetCustomAttributes(typeof(ConfigVarAttribute), false)[0] as ConfigVarAttribute;
                     var name = attr.Name ?? @class.Name.ToLower() + "." + field.Name.ToLower();
                     if (field.GetValue(null) is ConfigVar) {
-                        Debug.LogError("ConfigVars", "ConfigVars (" + name + ") should not be initialized from code; just marked with attribute");
+                        Debug.LogError("ConfigVars (" + name + ") should not be initialized from code; just marked with attribute");
                         continue;
                     }
                     ConfigVar cvar = new ConfigVar(name, attr.Description, attr.DefaultValue, attr.Flags);
@@ -172,7 +170,7 @@ public class ConfigVar {
                     Value = tokens[1].Trim('"');
                 }
             }
-            Debug.Log("ConfigVars", $"Config loaded");
+            Debug.Log("Config loaded");
         }
     }
 

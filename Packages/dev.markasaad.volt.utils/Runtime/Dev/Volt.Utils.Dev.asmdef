@@ -1,11 +1,16 @@
 {
-    "name": "Volt.Utils",
+    "name": "Volt.Utils.Dev",
     "rootNamespace": "",
     "references": [
+        "GUID:97227ded02eeb224a996fc30d0f7a294",
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [],
+    "excludePlatforms": [
+        "CloudRendering",
+        "WindowsStandalone32Server",
+        "WindowsStandalone64Server"
+    ],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],

@@ -1,16 +1,11 @@
 using UnityEngine;
 
-namespace Volt.Utils.Debug {
-    public class PlayerConsole : MonoBehaviour {
-        public LogSeverity LogLevel;
-
-        private LogSeverity m_previousLogLevel;
-
+namespace Volt.Utils.Dev {
+    public class ConsoleManager : MonoBehaviour {
         private void Start() {
             var consoleUI = Instantiate(Resources.Load<ConsoleGUI>("Prefabs/ConsoleGUI"));
             DontDestroyOnLoad(consoleUI);
 
-            Console.SetLogLevel(LogLevel);
             Console.Init(consoleUI);
 
             Console.SetOpen(false);
@@ -23,14 +18,7 @@ namespace Volt.Utils.Debug {
         }
 
         private void Update() {
-            if (m_previousLogLevel != LogLevel) {
-                Console.SetLogLevel(LogLevel);
-                m_previousLogLevel = LogLevel;
-            }
-
             Console.ConsoleUpdate();
-
-            m_previousLogLevel = LogLevel;
         }
 
         private void LateUpdate() {

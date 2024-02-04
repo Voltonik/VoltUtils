@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Volt.Utils.Debug {
+namespace Volt.Utils.Dev {
     public class ConsoleTextWin : IConsoleUI {
         private string m_Prompt = "";
         private bool m_RestoreFocus;

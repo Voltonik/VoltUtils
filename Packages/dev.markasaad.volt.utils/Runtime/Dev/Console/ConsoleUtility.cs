@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Volt.Utils.Debug {
+namespace Volt.Utils.Dev {
     public static class ConsoleUtility {
         /// <summary>
         /// Converts a List of string arrays to a string where each element in each line is correctly padded.

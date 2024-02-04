@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using Volt.Utils.Extensions;
 
-namespace Volt.Utils.Debug {
-    using Debug = VDebug;
-
+namespace Volt.Utils.Dev {
     public interface IConsoleUI {
         void Init();
         void Shutdown();
@@ -74,8 +73,6 @@ namespace Volt.Utils.Debug {
         private static int s_historyNextIndex = 0;
         private static int s_historyIndex = 0;
 
-        private static LogSeverity s_logLevel = LogSeverity.Information;
-
         public delegate void MethodDelegate(string[] args);
 
         private static IConsoleUI s_consoleUI;
@@ -103,10 +100,6 @@ namespace Volt.Utils.Debug {
             s_historyIndex = 0;
 
             s_consoleUI.Shutdown();
-        }
-
-        public static void SetLogLevel(LogSeverity logLevel) {
-            s_logLevel = logLevel;
         }
 
         static void OutputString(string message) {
@@ -236,7 +229,7 @@ namespace Volt.Utils.Debug {
         }
 
         public static void EnqueueCommandNoHistory(string command) {
-            Debug.Log("CMD", command, s_logLevel);
+            Debug.Log(command);
             s_pendingCommands.Add(command);
         }
 
