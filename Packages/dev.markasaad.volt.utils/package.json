@@ -1,6 +1,6 @@
 {
   "name": "dev.markasaad.volt.utils",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "displayName": "VoltUtils",
   "description": "Useful utilities I use for developing games.",
   "repository": "github:voltonik/VoltUtils",
