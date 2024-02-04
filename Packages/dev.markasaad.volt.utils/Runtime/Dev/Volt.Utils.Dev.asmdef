@@ -7,9 +7,7 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [
-        "CloudRendering",
-        "WindowsStandalone32Server",
-        "WindowsStandalone64Server"
+        "CloudRendering"
     ],
     "allowUnsafeCode": false,
     "overrideReferences": false,
