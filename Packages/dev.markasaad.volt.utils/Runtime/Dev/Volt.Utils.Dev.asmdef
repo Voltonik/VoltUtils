@@ -9,8 +9,7 @@
     "excludePlatforms": [
         "EmbeddedLinux",
         "LinuxStandalone64",
-        "CloudRendering",
-        "WindowsStandalone64Server"
+        "CloudRendering"
     ],
     "allowUnsafeCode": false,
     "overrideReferences": false,
