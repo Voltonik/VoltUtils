@@ -40,7 +40,8 @@ namespace Volt.Utils.Dev {
         public static ConfigVarFlags DirtyFlags { get; set; } = ConfigVarFlags.None;
         private static readonly Regex ValidateNameRe = new Regex(@"^[a-z_+-][a-z0-9_+.-]*$");
 
-        const string CONFIG_FILE_NAME = "settings.cfg";
+        public static string CONFIG_FILE_NAME = "settings.cfg";
+        public static string CONFIG_FILE_DIRECTORY = Application.persistentDataPath;
 
         public virtual string Value {
             get { return m_stringValue; }
@@ -95,7 +96,7 @@ namespace Volt.Utils.Dev {
         }
 
         public static void Save() {
-            string path = System.IO.Path.Join(Application.persistentDataPath, CONFIG_FILE_NAME);
+            string path = System.IO.Path.Join(CONFIG_FILE_DIRECTORY, CONFIG_FILE_NAME);
 
             using (var st = System.IO.File.CreateText(path)) {
                 foreach (var cvar in ConfigVars.Values) {
@@ -160,7 +161,7 @@ namespace Volt.Utils.Dev {
         private void LoadValueOrDefault() {
             Value = DefaultValue;
 
-            string path = System.IO.Path.Join(Application.persistentDataPath, CONFIG_FILE_NAME);
+            string path = System.IO.Path.Join(CONFIG_FILE_DIRECTORY, CONFIG_FILE_NAME);
 
             if (System.IO.File.Exists(path)) {
                 using var st = System.IO.File.OpenText(path);
