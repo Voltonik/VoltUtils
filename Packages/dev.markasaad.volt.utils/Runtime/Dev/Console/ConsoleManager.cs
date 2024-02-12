@@ -6,11 +6,10 @@ namespace Volt.Utils.Dev {
             var consoleUI = Instantiate(Resources.Load<ConsoleGUI>("Prefabs/ConsoleGUI"));
             DontDestroyOnLoad(consoleUI);
 
+            ConfigVar.Init();
             Console.Init(consoleUI);
 
             Console.SetOpen(false);
-
-            ConfigVar.Init();
         }
 
         private void OnDestroy() {

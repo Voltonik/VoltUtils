@@ -23,7 +23,7 @@ namespace Volt.Utils.Dev {
         public Text buildIdText;
 
         void Awake() {
-            input_field.onEndEdit.AddListener(OnSubmit);
+            input_field.onSubmit.AddListener(OnSubmit);
         }
 
         public void Init() {
@@ -43,6 +43,11 @@ namespace Volt.Utils.Dev {
             var count = Mathf.Min(100, m_Lines.Count);
             var start = m_Lines.Count - count;
             text_area.text = string.Join("\n", m_Lines.GetRange(start, count).ToArray());
+        }
+
+        public void Clear() {
+            m_Lines.Clear();
+            text_area.text = "";
         }
 
         public bool IsOpen() {
@@ -100,10 +105,6 @@ namespace Volt.Utils.Dev {
 
 
         void OnSubmit(string value) {
-            // Only react to this if enter was actually pressed. Submit can also happen by mouseclicks.
-            if (!Input.GetKey(KeyCode.Return) && !Input.GetKey(KeyCode.KeypadEnter))
-                return;
-
             input_field.text = "";
             input_field.ActivateInputField();
 

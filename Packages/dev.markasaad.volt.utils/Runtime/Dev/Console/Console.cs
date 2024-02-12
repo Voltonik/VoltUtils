@@ -13,6 +13,7 @@ namespace Volt.Utils.Dev {
         void ConsoleUpdate();
         void ConsoleLateUpdate();
         void SetPrompt(string prompt);
+        void Clear();
     }
 
     public class ConsoleNullUI : IConsoleUI {
@@ -40,6 +41,9 @@ namespace Volt.Utils.Dev {
 
         public void SetPrompt(string prompt) {
         }
+
+        public void Clear() {
+        }
     }
 
     public class Console {
@@ -60,8 +64,17 @@ namespace Volt.Utils.Dev {
         [ConfigVar(Name = "config.showlastline", DefaultValue = "0", Description = "Show last logged line briefly at top of screen")]
         private static readonly ConfigVar ConsoleShowLastLine;
 
-        [ConfigVar(Name = "config.autosave", DefaultValue = "0", Description = "Auto save variables on change (ConfigVar Flag include be ConfigVar.Flags.Save)")]
+        [ConfigVar(Name = "config.autosave", DefaultValue = "0", Description = "Auto save variables on change. (ConfigVar Flag must include ConfigVarFlags.Save which is the default Flag)")]
         private static readonly ConfigVar ConsoleAutoSave;
+
+        [ConfigVar(Name = "config.log.toggle", DefaultValue = "1", Description = "Output application log messages to the console.")]
+        private static readonly ConfigVar ConsoleLogMessages;
+
+        [ConfigVar(Name = "config.log.collapse", DefaultValue = "1", Description = "Output log messages only once. (Recommended)")]
+        private static readonly ConfigVar ConsoleLogMessagesCollapse;
+
+        [ConfigVar(Name = "config.log.stacktraces", DefaultValue = "1", Description = "Output stack traces for log messages.")]
+        private static readonly ConfigVar ConsoleLogMessagesTraces;
 
         public static int PendingCommandsWaitForFrames = 0;
         public static bool PendingCommandsWaitForLoad = false;
@@ -79,13 +92,20 @@ namespace Volt.Utils.Dev {
         private static string s_lastMsg = "";
         private static double s_timeLastMsg;
 
+        private static HashSet<string> s_logMessages = new HashSet<string>();
+
         public static void Init(IConsoleUI consoleUI) {
             s_consoleUI = consoleUI;
             s_consoleUI.Init();
 
+
             AddCommand("help", CmdHelp, "Show available commands.");
             AddCommand("vars", CmdVars, "Show available variables.");
             AddCommand("exec", CmdExec, "Executes commands from file.");
+
+            AddCommand("clear", CmdClear, "Clears the console.");
+
+            Application.logMessageReceived += OnLogMessage;
 
             Write("Console ready");
         }
@@ -96,10 +116,26 @@ namespace Volt.Utils.Dev {
             PendingCommandsWaitForLoad = false;
             s_commands = new Dictionary<string, ConsoleCommand>();
             s_history = new string[K_HistoryCount];
+            s_logMessages = new HashSet<string>();
             s_historyNextIndex = 0;
             s_historyIndex = 0;
 
+            Application.logMessageReceived -= OnLogMessage;
+
             s_consoleUI.Shutdown();
+        }
+
+        private static void OnLogMessage(string msg, string stackTrace, LogType logType) {
+            if (ConsoleLogMessages.IntValue == 0 || (ConsoleLogMessagesCollapse.IntValue == 1 && s_logMessages.Contains(stackTrace)) || stackTrace.Contains("Volt.Utils.Dev"))
+                return;
+
+            if (ConsoleLogMessagesCollapse.IntValue == 1)
+                s_logMessages.Add(stackTrace);
+
+            Write($"[{Enum.GetName(typeof(LogType), logType)}] {msg}");
+
+            if (ConsoleLogMessagesTraces.IntValue == 1)
+                Write(stackTrace);
         }
 
         static void OutputString(string message) {
@@ -346,6 +382,10 @@ namespace Volt.Utils.Dev {
                 if (!silent)
                     OutputString("Exec failed: " + e.Message);
             }
+        }
+
+        private static void CmdClear(string[] arguments) {
+            s_consoleUI?.Clear();
         }
 
         // Returns length of largest common prefix of two strings

@@ -153,6 +153,10 @@ namespace Volt.Utils.Dev {
         public void SetPrompt(string prompt) {
             m_Prompt = prompt;
         }
+
+        public void Clear() {
+            System.Console.Clear();
+        }
     }
 }
 #endif
