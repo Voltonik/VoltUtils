@@ -4,17 +4,15 @@ using System.Collections.Generic;
 namespace Volt.Utils.Dev {
     public unsafe class MonitoredVar {
         public string Name;
-        public void* Ptr;
-        public Type Type;
+        public object Ptr;
 
-        public MonitoredVar(string name, void* pointer, Type type) {
+        public MonitoredVar(string name, object pointer) {
             Name = name;
             Ptr = pointer;
-            Type = type;
         }
 
         public string GetValue() {
-            return (*(float*)Ptr).ToString();
+            return Ptr.ToString();
         }
     }
 

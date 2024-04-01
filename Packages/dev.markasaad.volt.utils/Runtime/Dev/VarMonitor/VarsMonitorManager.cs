@@ -1,10 +1,8 @@
-using System.Reflection;
-
 using UnityEngine;
 
 namespace Volt.Utils.Dev {
-    public unsafe class VarsMonitorManager : MonoBehaviour {
-        private float test = 2;
+    public class VarsMonitorManager : MonoBehaviour {
+        private object test = 2;
 
         private void Start() {
             var monitorUI = Instantiate(Resources.Load<VarsMonitorGUI>("Prefabs/VarsMonitorGUI"));
@@ -13,9 +11,7 @@ namespace Volt.Utils.Dev {
             VarsMonitor.Init(monitorUI);
             VarsMonitor.SetOpen(true);
 
-            fixed (float* testPtr = &test) {
-                VarsMonitor.AddVar(new MonitoredVar("test", testPtr, typeof(float)));
-            }
+            VarsMonitor.AddVar(new MonitoredVar("test", test));
         }
 
         private void Update() {

@@ -11,6 +11,8 @@ namespace Volt.Utils.Dev {
 #endif
         [ConfigVar(Name = "console.alpha", DefaultValue = "0.9", Description = "Console transparency.")]
         static ConfigVar consoleAlpha;
+        [ConfigVar(Name = "console.textsize", DefaultValue = "14", Description = "Console text font size.")]
+        static ConfigVar consoleTextSize;
 
         private List<string> m_Lines = new List<string>();
         private int m_WantedCaretPosition = -1;
@@ -18,6 +20,7 @@ namespace Volt.Utils.Dev {
         public Transform panel;
         public InputField input_field;
         public Text text_area;
+        public Text caret;
         public Image text_area_background;
         public KeyCode toggle_console_key;
         public Text buildIdText;
@@ -73,6 +76,11 @@ namespace Volt.Utils.Dev {
             var c = text_area_background.color;
             c.a = Mathf.Clamp01(consoleAlpha.FloatValue);
             text_area_background.color = c;
+
+            text_area.fontSize = consoleTextSize.IntValue;
+            buildIdText.fontSize = consoleTextSize.IntValue;
+            input_field.textComponent.fontSize = consoleTextSize.IntValue + 1;
+            caret.fontSize = consoleTextSize.IntValue + 1;
 
             // This is to prevent clicks outside input field from removing focus
             input_field.ActivateInputField();

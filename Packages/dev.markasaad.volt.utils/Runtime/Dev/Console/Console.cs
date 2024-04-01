@@ -17,33 +17,15 @@ namespace Volt.Utils.Dev {
     }
 
     public class ConsoleNullUI : IConsoleUI {
-        public void ConsoleUpdate() {
-        }
-
-        public void ConsoleLateUpdate() {
-        }
-
-        public void Init() {
-        }
-
-        public void Shutdown() {
-        }
-
-        public bool IsOpen() {
-            return false;
-        }
-
-        public void OutputString(string message) {
-        }
-
-        public void SetOpen(bool open) {
-        }
-
-        public void SetPrompt(string prompt) {
-        }
-
-        public void Clear() {
-        }
+        public void ConsoleUpdate() { }
+        public void ConsoleLateUpdate() { }
+        public void Init() { }
+        public void Shutdown() { }
+        public bool IsOpen() => false;
+        public void OutputString(string message) { }
+        public void SetOpen(bool open) { }
+        public void SetPrompt(string prompt) { }
+        public void Clear() { }
     }
 
     public class Console {
@@ -76,6 +58,9 @@ namespace Volt.Utils.Dev {
         [ConfigVar(Name = "config.log.stacktraces", DefaultValue = "1", Description = "Output stack traces for log messages.")]
         private static readonly ConfigVar ConsoleLogMessagesTraces;
 
+        [ConfigVar(Name = "config.log.level", DefaultValue = "0|1|2", Description = "Sets the log level for the console. 0 = Info, 1 = Warnings, 2 = Errors. Combine using | operator. Ex: config.log.level 0|1")]
+        private static readonly ConfigVar ConsoleLogMessagesLevel;
+
         public static int PendingCommandsWaitForFrames = 0;
         public static bool PendingCommandsWaitForLoad = false;
 
@@ -93,6 +78,7 @@ namespace Volt.Utils.Dev {
         private static double s_timeLastMsg;
 
         private static HashSet<string> s_logMessages = new HashSet<string>();
+        private static LogType s_consoleLogLevel;
 
         public static void Init(IConsoleUI consoleUI) {
             s_consoleUI = consoleUI;
@@ -104,6 +90,8 @@ namespace Volt.Utils.Dev {
             AddCommand("exec", CmdExec, "Executes commands from file.");
 
             AddCommand("clear", CmdClear, "Clears the console.");
+
+            SetLogLevelParser(ConsoleLogMessagesLevel.Value);
 
             Application.logMessageReceived += OnLogMessage;
 
@@ -125,8 +113,41 @@ namespace Volt.Utils.Dev {
             s_consoleUI.Shutdown();
         }
 
+        private static void SetLogLevelParser(string input) {
+            if (string.IsNullOrWhiteSpace(input)) {
+                Write("Input string is empty.");
+                return;
+            }
+
+            string[] parts = input.Split('|');
+
+            LogType result = default;
+
+            for (int i = 0; i < parts.Length; i++) {
+                if (!int.TryParse(parts[i].Trim(), out int value)) {
+                    Write($"Invalid input: {input}");
+                    return;
+                }
+
+                if (!Enum.IsDefined(typeof(LogType), value)) {
+                    Write($"Invalid LogType value: {value}");
+                    return;
+                }
+
+                if (i == 0)
+                    result = (LogType)value;
+                else
+                    result |= (LogType)value;
+            }
+
+            s_consoleLogLevel = result;
+        }
+
         private static void OnLogMessage(string msg, string stackTrace, LogType logType) {
-            if (ConsoleLogMessages.IntValue == 0 || (ConsoleLogMessagesCollapse.IntValue == 1 && s_logMessages.Contains(stackTrace)) || stackTrace.Contains("Volt.Utils.Dev"))
+            if (ConsoleLogMessages.IntValue == 0 || logType.HasFlag(s_consoleLogLevel) || (ConsoleLogMessagesCollapse.IntValue == 1 && s_logMessages.Contains(stackTrace)))
+                return;
+
+            if (stackTrace.Contains("Volt.Utils.Dev"))
                 return;
 
             if (ConsoleLogMessagesCollapse.IntValue == 1)
@@ -214,6 +235,10 @@ namespace Volt.Utils.Dev {
 
         public static void ConsoleUpdate() {
             s_consoleUI.ConsoleUpdate();
+
+            if (ConsoleLogMessagesLevel.ChangeCheck()) {
+                SetLogLevelParser(ConsoleLogMessagesLevel.Value);
+            }
 
             while (s_pendingCommands.Count > 0) {
                 if (PendingCommandsWaitForFrames > 0) {

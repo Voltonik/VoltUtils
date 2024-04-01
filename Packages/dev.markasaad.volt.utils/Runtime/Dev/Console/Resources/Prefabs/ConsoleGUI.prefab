@@ -777,6 +777,7 @@ MonoBehaviour:
   panel: {fileID: 224940446302577990}
   input_field: {fileID: 114225940033063086}
   text_area: {fileID: 114263740347123274}
+  caret: {fileID: 3038782335154792126}
   text_area_background: {fileID: 114789097906752952}
   toggle_console_key: 282
   buildIdText: {fileID: 114390190176678946}
