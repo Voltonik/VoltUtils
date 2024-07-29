@@ -25,6 +25,9 @@ namespace Volt.Utils.Dev {
         public KeyCode toggle_console_key;
         public Text buildIdText;
 
+        private ConsoleActionMap consoleActionMap;
+
+
         void Awake() {
             input_field.onSubmit.AddListener(OnSubmit);
         }
@@ -33,13 +36,20 @@ namespace Volt.Utils.Dev {
             buildIdText.text = Application.version + " (" + Application.unityVersion + ")";
 
 #if ENABLE_INPUT_SYSTEM
-            var consoleActionMap = new ConsoleActionMap();
+            consoleActionMap = new ConsoleActionMap();
             consoleActionMap.Console.AddCallbacks(this);
             consoleActionMap.Enable();
 #endif
         }
 
-        public void Shutdown() { }
+        private void OnDisable() {
+            Shutdown();
+        }
+
+        public void Shutdown() {
+            consoleActionMap.Disable();
+            consoleActionMap.Dispose();
+        }
 
         public void OutputString(string s) {
             m_Lines.Add(s);
