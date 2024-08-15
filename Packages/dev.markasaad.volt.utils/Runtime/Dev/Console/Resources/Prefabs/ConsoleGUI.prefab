@@ -89,7 +89,7 @@ GameObject:
   m_Component:
   - component: {fileID: 224406296449889520}
   - component: {fileID: 222856289313565410}
-  - component: {fileID: 114665525935706046}
+  - component: {fileID: 3743060642681288818}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -124,7 +124,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1563974539060858}
   m_CullTransparentMesh: 0
---- !u!114 &114665525935706046
+--- !u!114 &3743060642681288818
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -137,10 +137,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8074178, g: 0.83823526, b: 0.83823526, a: 1}
-  m_RaycastTarget: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -149,7 +149,7 @@ MonoBehaviour:
     m_FontSize: 15
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 1
     m_MaxSize: 40
     m_Alignment: 3
     m_AlignByGeometry: 0
@@ -248,7 +248,7 @@ GameObject:
   - component: {fileID: 224849082387073886}
   - component: {fileID: 222428645311929014}
   - component: {fileID: 114817829639355230}
-  - component: {fileID: 114225940033063086}
+  - component: {fileID: 5129203145711733701}
   m_Layer: 5
   m_Name: InputField
   m_TagString: Untagged
@@ -315,7 +315,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &114225940033063086
+--- !u!114 &5129203145711733701
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -352,11 +352,11 @@ MonoBehaviour:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
     m_PressedTrigger: Pressed
-    m_SelectedTrigger: Highlighted
+    m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
   m_TargetGraphic: {fileID: 114817829639355230}
-  m_TextComponent: {fileID: 114665525935706046}
+  m_TextComponent: {fileID: 3743060642681288818}
   m_Placeholder: {fileID: 0}
   m_ContentType: 0
   m_InputType: 0
@@ -639,9 +639,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.66176474, g: 0.66176474, b: 0.66176474, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -775,7 +775,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 224940446302577990}
-  input_field: {fileID: 114225940033063086}
+  input_field: {fileID: 5129203145711733701}
   text_area: {fileID: 114263740347123274}
   caret: {fileID: 3038782335154792126}
   text_area_background: {fileID: 114789097906752952}
@@ -1052,9 +1052,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 0, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

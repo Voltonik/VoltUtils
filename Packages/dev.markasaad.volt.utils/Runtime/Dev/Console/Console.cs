@@ -48,6 +48,7 @@ namespace Volt.Utils.Dev {
 
         [ConfigVar(Name = "config.autosave", DefaultValue = "0", Description = "Auto save variables on change. (ConfigVar Flag must include ConfigVarFlags.Save which is the default Flag)")]
         private static readonly ConfigVar ConsoleAutoSave;
+        
 
         [ConfigVar(Name = "config.log.toggle", DefaultValue = "1", Description = "Output application log messages to the console.")]
         private static readonly ConfigVar ConsoleLogMessages;
@@ -60,6 +61,10 @@ namespace Volt.Utils.Dev {
 
         [ConfigVar(Name = "config.log.level", DefaultValue = "0|1|2", Description = "Sets the log level for the console. 0 = Info, 1 = Warnings, 2 = Errors. Combine using | operator. Ex: config.log.level 0|1")]
         private static readonly ConfigVar ConsoleLogMessagesLevel;
+        
+        [ConfigVar(Name = "game.maxfps", DefaultValue = "60", Description = "Application.targetFrameRate")]
+        private static readonly ConfigVar GameMaxFps;
+
 
         public static int PendingCommandsWaitForFrames = 0;
         public static bool PendingCommandsWaitForLoad = false;
@@ -238,6 +243,10 @@ namespace Volt.Utils.Dev {
 
             if (ConsoleLogMessagesLevel.ChangeCheck()) {
                 SetLogLevelParser(ConsoleLogMessagesLevel.Value);
+            }
+
+            if (GameMaxFps.ChangeCheck()) {
+                Application.targetFrameRate = GameMaxFps.IntValue;
             }
 
             while (s_pendingCommands.Count > 0) {

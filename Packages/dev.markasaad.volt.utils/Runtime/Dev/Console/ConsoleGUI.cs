@@ -1,7 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using System.Linq;
+
+#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Users;
+#endif
 
 namespace Volt.Utils.Dev {
 #if ENABLE_INPUT_SYSTEM
@@ -11,7 +16,7 @@ namespace Volt.Utils.Dev {
 #endif
         [ConfigVar(Name = "console.alpha", DefaultValue = "0.9", Description = "Console transparency.")]
         static ConfigVar consoleAlpha;
-        [ConfigVar(Name = "console.textsize", DefaultValue = "14", Description = "Console text font size.")]
+        [ConfigVar(Name = "console.textsize", DefaultValue = "9", Description = "Console text font size.")]
         static ConfigVar consoleTextSize;
 
         private List<string> m_Lines = new List<string>();
@@ -25,8 +30,10 @@ namespace Volt.Utils.Dev {
         public KeyCode toggle_console_key;
         public Text buildIdText;
 
+#if ENABLE_INPUT_SYSTEM
         private ConsoleActionMap consoleActionMap;
-
+#endif
+        private bool isKeyboard;
 
         void Awake() {
             input_field.onSubmit.AddListener(OnSubmit);
@@ -47,8 +54,10 @@ namespace Volt.Utils.Dev {
         }
 
         public void Shutdown() {
+#if ENABLE_INPUT_SYSTEM
             consoleActionMap.Disable();
             consoleActionMap.Dispose();
+#endif
         }
 
         public void OutputString(string s) {
@@ -70,6 +79,7 @@ namespace Volt.Utils.Dev {
         public void SetOpen(bool open) {
             panel.gameObject.SetActive(open);
             if (open) {
+                isKeyboard = InputSystem.devices.Any(d => d.displayName == "Keyboard");
                 input_field.ActivateInputField();
             }
         }
@@ -92,8 +102,8 @@ namespace Volt.Utils.Dev {
             input_field.textComponent.fontSize = consoleTextSize.IntValue + 1;
             caret.fontSize = consoleTextSize.IntValue + 1;
 
-            // This is to prevent clicks outside input field from removing focus
-            input_field.ActivateInputField();
+            if (isKeyboard)
+                input_field.ActivateInputField();
 
 #if !ENABLE_INPUT_SYSTEM
             if (Input.GetKeyDown(KeyCode.Tab)) {
