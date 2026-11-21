@@ -2,31 +2,38 @@ name: "publish npm"
 
 on: push
 
+# id-token: npm trusted publishing (OIDC) authenticates the publish; contents: pushes the version bump.
+permissions:
+    id-token: write
+    contents: write
+
 jobs:
     publish:
         runs-on: ubuntu-latest
         steps:
             - name: checkout
-              uses: actions/checkout@v2
-              
+              uses: actions/checkout@v4
+
             - name: node
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v4
               with:
-                  node-version: 12
+                  node-version: 24
                   registry-url: https://registry.npmjs.org
-                  
-            - name: version patch 
-              run: npm version patch
+
+            # Trusted publishing needs npm 11.5.1 or later.
+            - name: npm
+              run: npm install -g npm@latest
+
+            - name: version patch
+              run: npm version patch --no-git-tag-version
               working-directory: Packages/dev.markasaad.volt.utils
-                  
+
             - run: git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
             - run: git config user.name "$GITHUB_ACTOR"
             - run: git add Packages/dev.markasaad.volt.utils/package.json
             - run: git commit -m "[skip actions]"
             - run: git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
-            
+
             - name: publish
               run: npm publish --access public
               working-directory: Packages/dev.markasaad.volt.utils
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_TOKEN}}
