@@ -31,6 +31,9 @@ namespace Volt.Utils.Dev {
         public Text buildIdText;
 
 #if ENABLE_INPUT_SYSTEM
+        /// <summary>Input System path of the button that opens and closes the console. Set before Init; empty keeps F1.</summary>
+        public string ToggleBinding { get; set; }
+
         private ConsoleActionMap consoleActionMap;
 #endif
         private bool isKeyboard;
@@ -44,6 +47,7 @@ namespace Volt.Utils.Dev {
 
 #if ENABLE_INPUT_SYSTEM
             consoleActionMap = new ConsoleActionMap();
+            if (!string.IsNullOrEmpty(ToggleBinding)) consoleActionMap.Console.Toggle.ApplyBindingOverride(ToggleBinding);
             consoleActionMap.Console.AddCallbacks(this);
             consoleActionMap.Enable();
 #endif
@@ -141,11 +145,14 @@ namespace Volt.Utils.Dev {
 
         public void SetPrompt(string prompt) { }
 
+        // The action map reports started, performed and canceled for every press: act on performed alone, once.
         public void OnToggle(InputAction.CallbackContext context) {
+            if (!context.performed) return;
             SetOpen(!IsOpen());
         }
 
         public void OnAutoComplete(InputAction.CallbackContext context) {
+            if (!context.performed) return;
             if (input_field.caretPosition == input_field.text.Length && input_field.text.Length > 0) {
                 var res = Console.TabComplete(input_field.text);
                 input_field.text = res;
@@ -154,11 +161,13 @@ namespace Volt.Utils.Dev {
         }
 
         public void OnHistoryUp(InputAction.CallbackContext context) {
+            if (!context.performed) return;
             input_field.text = Console.HistoryUp(input_field.text);
             m_WantedCaretPosition = input_field.text.Length;
         }
 
         public void OnHistoryDown(InputAction.CallbackContext context) {
+            if (!context.performed) return;
             input_field.text = Console.HistoryDown();
             input_field.caretPosition = input_field.text.Length;
         }
