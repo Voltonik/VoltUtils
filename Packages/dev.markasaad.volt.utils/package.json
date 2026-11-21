@@ -3,7 +3,10 @@
   "version": "0.0.26",
   "displayName": "VoltUtils",
   "description": "Useful utilities I use for developing games.",
-  "repository": "github:voltonik/VoltUtils",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Voltonik/VoltUtils.git"
+  },
   "keywords": [
     "unity",
     "utilities"
