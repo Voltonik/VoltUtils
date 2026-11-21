@@ -90,7 +90,7 @@ namespace Volt.Utils.Dev {
             s_consoleUI.Init();
 
 
-            AddCommand("help", CmdHelp, "Show available commands.");
+            AddCommand("help", CmdHelp, "Show available commands. help <page> for the next pages.");
             AddCommand("vars", CmdVars, "Show available variables.");
             AddCommand("exec", CmdExec, "Executes commands from file.");
 
@@ -371,15 +371,27 @@ namespace Volt.Utils.Dev {
             return s_history[s_historyIndex % K_HistoryCount];
         }
 
+        private const int K_HelpPageSize = 15;
+
         private static void CmdHelp(string[] arguments) {
-            OutputString("Available commands:");
+            var names = new List<string>(s_commands.Keys);
+            names.Sort();
+            int pages = Mathf.Max(1, Mathf.CeilToInt(names.Count / (float)K_HelpPageSize));
+
+            int page = 1;
+            if ((arguments.Length > 0) && (!int.TryParse(arguments[0], out page) || (page < 1) || (page > pages))) {
+                OutputString($"Page must be 1-{pages}.");
+                return;
+            }
+
+            OutputString($"Available commands (page {page}/{pages}):");
 
             var lines = new List<string[]>();
-
-            foreach (var c in s_commands)
-                lines.Add(new[] { c.Value.Name, c.Value.Description });
+            for (int i = (page - 1) * K_HelpPageSize; i < Mathf.Min(page * K_HelpPageSize, names.Count); i++)
+                lines.Add(new[] { s_commands[names[i]].Name, s_commands[names[i]].Description });
 
             OutputString(ConsoleUtility.PadElementsInLines(lines, 3));
+            if (page < pages) OutputString($"Type 'help {page + 1}' for more.");
         }
 
         private static void CmdVars(string[] arguments) {

@@ -65,10 +65,18 @@ namespace Volt.Utils.Dev {
         }
 
         public void OutputString(string s) {
+            // Follow new output only if already at the bottom, so reading back up is not yanked away.
+            var scroll = text_area.GetComponentInParent<ScrollRect>();
+            bool atBottom = (scroll != null) && ((scroll.verticalNormalizedPosition <= 0.01f) || (scroll.content.rect.height <= scroll.viewport.rect.height));
+
             m_Lines.Add(s);
             var count = Mathf.Min(100, m_Lines.Count);
             var start = m_Lines.Count - count;
             text_area.text = string.Join("\n", m_Lines.GetRange(start, count).ToArray());
+
+            if (!atBottom) return;
+            Canvas.ForceUpdateCanvases();
+            scroll.verticalNormalizedPosition = 0f;
         }
 
         public void Clear() {
